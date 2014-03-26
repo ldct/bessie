@@ -1,0 +1,10 @@
+{
+ "name"         : "bessie",
+ "version"      : "0.0.0",
+ "description"  : "Online Judge.",
+ "main"         : "server.js",
+ "author"       : "Li Xuanji",
+ "dependencies" : {
+   "express"    : "latest"
+   }
+ }
