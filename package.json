@@ -5,6 +5,7 @@
  "main"         : "server.js",
  "author"       : "Li Xuanji",
  "dependencies" : {
-   "express"    : "latest"
+   "express"    : "latest",
+   "express.io"  : "latest"
    }
  }

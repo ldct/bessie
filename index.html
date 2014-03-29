@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+<div id="contests_list">
+<h3> Your Contests </h3>
+</div>
+
+<div id="problems_list">
+</div>
+
+<div id="problem_detail">
+</div>
+
+<div id="submit" style="display:none">
+<h3> Submit </h3>
+<input type="file" id="files" name="files[]" />
+<div id="list">
+</div>
+<div id="submit_preview"></div>
+<div id="submit_button">submit</div>
+</div>
+
+<div style="height: 10em">
+<br>
+</div>
+
+<script>
+var user = 'xuanji'; //todo: add login
+var contest;
+var problem;
+
+function showContests(uid) {
+  $.get("/contests/" + user).done(function(data) {
+    for (var i=0; i<data.length; i++) {
+      $("<div />", {
+        'html': data[i]
+      }).click(function(e) {
+        contest = e.target.innerHTML;
+        showProblems(contest);
+      }).appendTo($("#contests_list"));
+    }
+  });
+}
+
+function showProblems(cid) {
+  $.get("/problems/" + cid).done(function(data) {
+    for (var i=0; i<data.length; i++) {
+      $("#problems_list").html("<h3> Problems </h3>");
+      $("<div />", {
+        'html': data[i]
+      }).click(function(e) {
+        problem = e.target.innerHTML;
+        detailProblem(problem);
+      }).appendTo($("#problems_list"));
+    }
+  });
+}
+
+function detailProblem(pid) {
+  $("#problem_detail").html("<h3>Problem Description</h3>");
+  $("#submit").show();
+  $.get("/description/" + pid).done(function(data) {
+    $("#problem_detail").append(data);
+  });
+  $("#submit_button").click(function() {
+    var f = $("#files").get(0).files[0];
+  });
+}
+
+var source_code;
+
+function handleFileSelect(evt) {
+  var files = evt.target.files;
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    source_code = e.target.result;
+    $("#submit_preview").html($("<pre>", {
+      text: source_code
+    }));
+  }
+  reader.readAsText(files[0]);
+}
+
+socket = io.connect();
+socket.on('talk', function(data) {
+    alert(data)
+})
+
+function handleSubmit() {
+  socket.emit('submit', {
+    'source': source_code,
+    'uid': user,
+    'cid': contest,
+    'pid': problem
+  });
+}
+
+$('#files').change(handleFileSelect);
+$('#submit_button').click(handleSubmit);
+showContests('user');
+
+</script>
+</body>
+</html>
