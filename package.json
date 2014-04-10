@@ -6,6 +6,7 @@
  "author"       : "Li Xuanji",
  "dependencies" : {
    "express"    : "latest",
-   "express.io"  : "latest"
+   "express.io" : "latest",
+   "kue"		: "latest"
    }
  }
