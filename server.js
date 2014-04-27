@@ -31,13 +31,8 @@ app.get('/description/:pid/static/:static', function(req, res) {
     res.send('not implemented yet ' + req.params.pid + req.params.static);
 });
 
-app.get('/problems/:cid', function(req, res) {
-    var path = 'data/contests/' + req.params.cid + '/problems.json';
-    helper.serve_json(path, res);
-});
-
-app.get('/contestants/:cid', function(req, res) {
-    var path = 'data/contests/' + req.params.cid + 'contestants.json';
+app.get('/contest_details/:cid', function(req, res) {
+    var path = 'data/contests/' + req.params.cid + '.json';
     helper.serve_json(path, res);
 });
 
@@ -46,14 +41,16 @@ app.get('/contests/:uid', function(req, res) {
     helper.serve_json(path, res);
 });
 
-app.io.route('submit', function(req) {
-        
+app.get('/jquery.min.js', function(req, res) {
+    helper.serve_html("jquery.min.js", res);
+});
 
+app.io.route('submit', function(req) {
     var job = jobs.create("grade", req.data);
 
     job.on('complete', function() {
         req.io.emit('talk', "graded successfully");
-    })
+    });
 
     job.save();
 });

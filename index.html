@@ -1,68 +1,94 @@
 <!DOCTYPE html>
 <html>
 <head>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script src="jquery.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
+
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+<style>
+</style>
 </head>
 <body>
 
-<div id="contests_list">
+<div class="row" style="max-width: 1400px; margin:auto">
+<div id="contests_list" class="col-md-6">
 <h3> Your Contests </h3>
 </div>
 
-<div id="problems_list">
+<div id="problems_list" class="col-md-6">
 </div>
 
-<div id="problem_detail">
 </div>
 
-<div id="submit" style="display:none">
-<h3> Submit </h3>
-<input type="file" id="files" name="files[]" />
-<div id="list">
-</div>
-<div id="submit_preview"></div>
-<div id="submit_button">submit</div>
-</div>
+<div class="row" style="max-width: 1400px; margin:auto">
+  <div id="problem_detail" class="col-md-6">
+  <h3> Problem Description </h3>
+  </div>
 
-<div style="height: 10em">
-<br>
+  <div class="col-md-6">
+  <div id="submit">
+    <h3> Submit </h3>
+
+      <div style="position:relative;">
+      <button type="button" class="btn btn-default" id="submit_button">Submit</button>
+        <a class='btn btn-primary' href='javascript:;'>
+          Choose File...
+          <input type="file" id="files" style='position:absolute;z-index:2;top:0;left:0;filter: alpha(opacity=0);-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";opacity:0;background-color:transparent;color:transparent;' name="files[]" size="40"  onchange='$("#upload-file-info").html($(this).val());'>
+        </a>
+        &nbsp;
+        <span class='label label-info' id="upload-file-info"></span>
+      </div>
+    <div id="result"></div>
+    <div id="submit_preview"></div>
+  </div>
 </div>
 
 <script>
-var user = 'xuanji'; //todo: add login
+//todo: use jQ BBJ instead
+urlParam = function(name) {
+  var url = window.location.href;
+  var results = new RegExp('[\\?&]' + name + '=([^&#]*)').exec(url);
+  if (!results) { 
+      return 0; 
+  }
+  return results[1] || 0;
+}
+
+var user;
 var contest;
 var problem;
 
-function showContests(uid) {
-  $.get("/contests/" + user).done(function(data) {
+function listContests(uid) {
+  user = uid;
+  $.get("/contests/" + uid).done(function(data) {
     for (var i=0; i<data.length; i++) {
       $("<div />", {
         'html': data[i]
       }).click(function(e) {
-        contest = e.target.innerHTML;
-        showProblems(contest);
+        listProblems(e.target.innerHTML);
       }).appendTo($("#contests_list"));
     }
   });
 }
 
-function showProblems(cid) {
-  $.get("/problems/" + cid).done(function(data) {
-    for (var i=0; i<data.length; i++) {
-      $("#problems_list").html("<h3> Problems </h3>");
+function listProblems(cid) {
+  contest = cid;
+  $.get("/contest_details/" + cid).done(function(data) {
+    $("#problems_list").html("<h3> Problems </h3>");
+    for (var i=0; i<data.problems.length; i++) {
       $("<div />", {
-        'html': data[i]
+        'html': data.problems[i]
       }).click(function(e) {
-        problem = e.target.innerHTML;
-        detailProblem(problem);
+        detailProblem(e.target.innerHTML);
       }).appendTo($("#problems_list"));
     }
   });
 }
 
 function detailProblem(pid) {
-  $("#problem_detail").html("<h3>Problem Description</h3>");
+  problem = pid;
+  $("#problem_detail").html($("<h3>", {'text': "Problem Description"}));
   $("#submit").show();
   $.get("/description/" + pid).done(function(data) {
     $("#problem_detail").append(data);
@@ -91,11 +117,13 @@ function handleFileSelect(evt) {
 
 socket = io.connect();
 socket.on('talk', function(data) {
-    alert(data)
-})
+  $("#result").append($("<pre>", {text: data}));
+});
 
 function handleSubmit() {
+  $("#result").append($("<pre>Submitting...</pre>"))
   socket.emit('submit', {
+    'title': [contest, problem, user, file_name].join('/'),
     'source_code': source_code,
     'file_name': file_name,
     'uid': user,
@@ -106,7 +134,20 @@ function handleSubmit() {
 
 $('#files').change(handleFileSelect);
 $('#submit_button').click(handleSubmit);
-showContests('user');
+
+if (urlParam("uid")) {
+  listContests(urlParam("uid"));  
+} else {
+  alert("please log in");
+}
+
+if (urlParam("cid")) {
+  listProblems(urlParam("cid"));
+}
+
+if (urlParam("pid")) {
+  detailProblem(urlParam("pid"));
+}
 
 </script>
 </body>

@@ -7,6 +7,6 @@
  "dependencies" : {
    "express"    : "latest",
    "express.io" : "latest",
-   "kue"		: "latest"
+   "kue"        : "latest"
    }
  }
